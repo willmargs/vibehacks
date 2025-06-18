@@ -1,17 +1,25 @@
 import { useContext, useMemo } from "react"
 import Editor from "./Editor"
 import { Header, Mixer } from "./components"
-import { PaneResize } from "@/components"
+import { ChatPanel, PaneResize } from "@/components"
 import { WorkstationContext } from "@/contexts"
 import { InputPane, PaneResizeData } from "@/components/PaneResize"
 
 export default function Workstation() {
-  const { mixerHeight, setAllowMenuAndShortcuts, setMixerHeight, showMixer } = useContext(WorkstationContext)!;
+  const { 
+    chatPanelWidth, 
+    mixerHeight, 
+    setAllowMenuAndShortcuts, 
+    setChatPanelWidth, 
+    setMixerHeight, 
+    showChatPanel, 
+    showMixer 
+  } = useContext(WorkstationContext)!;
 
-  const panes = useMemo(() => {
+  const verticalPanes = useMemo(() => {
     const panes: InputPane[] = [
       {
-        key: "0",
+        key: "editor",
         handle: { style: { height: 2, bottom: -2 } },
         children: <Editor />
       }
@@ -19,7 +27,7 @@ export default function Workstation() {
 
     if (showMixer)
       panes.push({
-        key: "1", 
+        key: "mixer", 
         max: 450, 
         min: 229, 
         children: <Mixer />, 
@@ -28,11 +36,47 @@ export default function Workstation() {
       });
 
     return panes;
-  }, [showMixer, mixerHeight])
+  }, [showMixer, mixerHeight]);
 
-  function handlePaneResizeStop(data: PaneResizeData) {
+  const horizontalPanes = useMemo(() => {
+    const panes: InputPane[] = [
+      {
+        key: "main",
+        handle: { style: { width: 2, right: -2 } },
+        children: (
+          <PaneResize
+            direction="vertical"
+            onPaneResize={() => setAllowMenuAndShortcuts(false)}
+            onPaneResizeStop={handleVerticalPaneResizeStop}
+            panes={verticalPanes}
+            style={{ flex: 1, height: "100%", display: "flex", flexDirection: "column" }}
+          />
+        )
+      }
+    ];
+
+    if (showChatPanel)
+      panes.push({
+        key: "chat",
+        max: 600,
+        min: 300,
+        children: <ChatPanel />,
+        fixed: true,
+        size: chatPanelWidth
+      });
+
+    return panes;
+  }, [verticalPanes, showChatPanel, chatPanelWidth, setAllowMenuAndShortcuts]);
+
+  function handleVerticalPaneResizeStop(data: PaneResizeData) {
     if (data.activeNext)
       setMixerHeight(data.activeNext.size);
+    setAllowMenuAndShortcuts(true);
+  }
+
+  function handleHorizontalPaneResizeStop(data: PaneResizeData) {
+    if (data.activeNext)
+      setChatPanelWidth(data.activeNext.size);
     setAllowMenuAndShortcuts(true);
   }
 
@@ -44,11 +88,11 @@ export default function Workstation() {
     >
       <Header />
       <PaneResize
-        direction="vertical"
+        direction="horizontal"
         onPaneResize={() => setAllowMenuAndShortcuts(false)}
-        onPaneResizeStop={handlePaneResizeStop}
-        panes={panes}
-        style={{ flex: 1, height: "calc(100vh - 69px)", display: "flex", flexDirection: "column" }}
+        onPaneResizeStop={handleHorizontalPaneResizeStop}
+        panes={horizontalPanes}
+        style={{ flex: 1, height: "calc(100vh - 69px)", display: "flex", flexDirection: "row" }}
       />
     </div>
   )

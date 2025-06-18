@@ -56,6 +56,7 @@ export interface WorkstationContextType extends WorkstationFile {
   adjustNumMeasures: (pos?: TimelinePosition) => void;
   allowMenuAndShortcuts: boolean;
   autoGridSize: TimelineSpan;
+  chatPanelWidth: number;
   consolidateClip: (clip: Clip) => void;
   createAudioClip: (file: WorkstationAudioInputFile, pos: TimelinePosition) => Promise<Clip | null>;
   createClipFromTrackRegion: () => void;
@@ -76,6 +77,7 @@ export interface WorkstationContextType extends WorkstationFile {
   pasteNode: (pos: TimelinePosition, lane?: AutomationLane) => void;
   scrollToItem: ScrollToItem | null;
   setAllowMenuAndShortcuts: Dispatch<SetStateAction<boolean>>;
+  setChatPanelWidth: Dispatch<SetStateAction<number>>;
   setFXChainPresets: Dispatch<SetStateAction<FXChainPreset[]>>;
   setIsLooping: Dispatch<SetStateAction<boolean>>;
   setIsPlaying: Dispatch<SetStateAction<boolean>>;
@@ -89,6 +91,7 @@ export interface WorkstationContextType extends WorkstationFile {
   setSelectedClipId: (clip: string | null) => void;
   setSelectedNodeId: (node: string | null) => void;
   setSelectedTrackId: Dispatch<SetStateAction<string | null>>;
+  setShowChatPanel: Dispatch<SetStateAction<boolean>>;
   setShowMaster: Dispatch<SetStateAction<boolean>>;
   setShowMixer: Dispatch<SetStateAction<boolean>>;
   setShowTimeRuler: Dispatch<SetStateAction<boolean>>;
@@ -109,6 +112,7 @@ export interface WorkstationContextType extends WorkstationFile {
 };
 
 interface WorkstationFile {
+  chatPanelWidth: number;
   isLooping: boolean;
   isPlaying: boolean;
   isRecording: boolean;
@@ -119,6 +123,7 @@ interface WorkstationFile {
   selectedClipId: string | null;
   selectedNodeId: string | null;
   selectedTrackId: string | null;
+  showChatPanel: boolean;
   showMaster: boolean;
   showMixer: boolean;
   showTimeRuler: boolean;

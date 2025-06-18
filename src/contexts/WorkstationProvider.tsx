@@ -47,6 +47,7 @@ export function WorkstationProvider({ children }: PropsWithChildren) {
   const { setShowPreferences } = useContext(PreferencesContext)!;
 
   const [allowMenuAndShortcuts, setAllowMenuAndShortcuts] = useState(true);
+  const [chatPanelWidth, setChatPanelWidth] = useState(350);
   const [fxChainPresets, setFXChainPresets] = useState<FXChainPreset[]>(
     JSON.parse(localStorage.getItem("fx-chain-presets") || "[]")
   );
@@ -62,6 +63,7 @@ export function WorkstationProvider({ children }: PropsWithChildren) {
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
+  const [showChatPanel, setShowChatPanel] = useState(true);
   const [showMaster, setShowMaster] = useState(false);
   const [showMixer, setShowMixer] = useState(false);
   const [showTimeRuler, setShowTimeRuler] = useState(false);
@@ -885,6 +887,7 @@ export function WorkstationProvider({ children }: PropsWithChildren) {
         adjustNumMeasures,
         allowMenuAndShortcuts,
         autoGridSize,
+        chatPanelWidth,
         consolidateClip,
         createAudioClip,
         createClipFromTrackRegion,
@@ -912,6 +915,7 @@ export function WorkstationProvider({ children }: PropsWithChildren) {
         selectedNodeId,
         selectedTrackId,
         setAllowMenuAndShortcuts,
+        setChatPanelWidth,
         setFXChainPresets,
         setIsLooping,
         setIsPlaying,
@@ -925,6 +929,7 @@ export function WorkstationProvider({ children }: PropsWithChildren) {
         setSelectedClipId,
         setSelectedNodeId,
         setSelectedTrackId,
+        setShowChatPanel,
         setShowMaster,
         setShowMixer,
         setShowTimeRuler,
@@ -937,6 +942,7 @@ export function WorkstationProvider({ children }: PropsWithChildren) {
         setTrackRegion,
         setTracks,
         setVerticalScale,
+        showChatPanel,
         showMaster,
         showMixer,
         showTimeRuler,

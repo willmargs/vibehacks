@@ -1,3 +1,4 @@
+export { default as ChatPanel } from "./ChatPanel";
 export { default as DNR } from "./DNR";
 export { default as HoldActionButton } from "./HoldActionButton";
 export { default as PaneResize } from "./PaneResize";
