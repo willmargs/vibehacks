@@ -35,6 +35,9 @@ importers:
       next:
         specifier: 15.2.4
         version: 15.2.4(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      openai:
+        specifier: ^5.5.1
+        version: 5.5.1(ws@8.18.2)(zod@3.24.1)
       playwright:
         specifier: ^1.50.0
         version: 1.50.0
@@ -1775,6 +1778,18 @@ packages:
 
   openai@4.100.0:
     resolution: {integrity: sha512-9soq/wukv3utxcuD7TWFqKdKp0INWdeyhUCvxwrne5KwnxaCp4eHL4GdT/tMFhYolxgNhxFzg5GFwM331Z5CZg==}
+    hasBin: true
+    peerDependencies:
+      ws: ^8.18.0
+      zod: ^3.23.8
+    peerDependenciesMeta:
+      ws:
+        optional: true
+      zod:
+        optional: true
+
+  openai@5.5.1:
+    resolution: {integrity: sha512-5i19097mGotHA1eFsM6Tjd/tJ8uo9sa5Ysv4Q6bKJ2vtN6rc0MzMrUefXnLXYAJcmMQrC1Efhj0AvfIkXrQamw==}
     hasBin: true
     peerDependencies:
       ws: ^8.18.0
@@ -4244,6 +4259,11 @@ snapshots:
       zod: 3.24.1
     transitivePeerDependencies:
       - encoding
+
+  openai@5.5.1(ws@8.18.2)(zod@3.24.1):
+    optionalDependencies:
+      ws: 8.18.2
+      zod: 3.24.1
 
   optionator@0.9.4:
     dependencies:
