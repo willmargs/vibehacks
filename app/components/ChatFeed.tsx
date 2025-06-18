@@ -294,23 +294,13 @@ export default function ChatFeed({ initialMessage, onClose }: ChatFeedProps) {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        <div className="flex items-center gap-2">
-          <Image
-            src="/favicon.svg"
-            alt="Open Operator"
-            className="w-8 h-8"
-            width={32}
-            height={32}
-          />
-          <span className="font-ppneue text-gray-900">Open Operator</span>
-        </div>
         <motion.button
           onClick={onClose}
           className="px-4 py-2 hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors rounded-md font-ppsupply flex items-center gap-2"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          Close
+          Exit
           {!isMobile && (
             <kbd className="px-2 py-1 text-xs bg-gray-100 rounded-md">ESC</kbd>
           )}
@@ -323,13 +313,6 @@ export default function ChatFeed({ initialMessage, onClose }: ChatFeedProps) {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <div className="w-full h-12 bg-white border-b border-gray-200 flex items-center px-4">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500" />
-              <div className="w-3 h-3 rounded-full bg-green-500" />
-            </div>
-          </div>
 
           {(() => {
             console.log("Session URL:", uiState.sessionUrl);
@@ -386,7 +369,7 @@ export default function ChatFeed({ initialMessage, onClose }: ChatFeedProps) {
                     variants={messageVariants}
                     className="p-4 bg-blue-50 rounded-lg font-ppsupply"
                   >
-                    <p className="font-semibold">Goal:</p>
+                    <p className="font-semibold">Query:</p>
                     <p>{initialMessage}</p>
                   </motion.div>
                 )}
