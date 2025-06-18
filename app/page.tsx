@@ -127,10 +127,10 @@ export default function Home() {
               <div className="p-8 flex flex-col items-center gap-8">
                 <div className="flex flex-col items-center gap-3">
                   <h1 className="text-2xl font-ppneue text-gray-900 text-center">
-                    Open Operator
+                    Vision
                   </h1>
                   <p className="text-base font-ppsupply text-gray-500 text-center">
-                    Hit run to watch AI browse the web.
+                    Give your voice a vision.
                   </p>
                 </div>
 
