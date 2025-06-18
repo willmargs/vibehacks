@@ -6,6 +6,7 @@ import ChatFeed from "./components/ChatFeed";
 import AnimatedButton from "./components/AnimatedButton";
 import Image from "next/image";
 import posthog from "posthog-js";
+import { clientSpeechToText, startRecording } from "./lib/speech-client";
 
 const Tooltip = ({ children, text }: { children: React.ReactNode; text: string }) => {
   return (
@@ -21,6 +22,9 @@ const Tooltip = ({ children, text }: { children: React.ReactNode; text: string }
 export default function Home() {
   const [isChatVisible, setIsChatVisible] = useState(false);
   const [initialMessage, setInitialMessage] = useState("");
+  const [inputText, setInputText] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -70,6 +74,54 @@ export default function Home() {
     },
     [setInitialMessage, setIsChatVisible]
   );
+
+  const handleVoiceRecord = async () => {
+    if (isRecording) return;
+
+    setIsRecording(true);
+    try {
+      const { stop } = await startRecording();
+      
+      // Allow user to stop recording manually or auto-stop after 10 seconds
+      const timeoutId = setTimeout(async () => {
+        const audioBlob = await stop();
+        await handleTranscription(audioBlob);
+        setIsRecording(false);
+      }, 10000);
+
+      // Store stop function for manual control
+      (window as any).stopVoiceRecording = async () => {
+        clearTimeout(timeoutId);
+        const audioBlob = await stop();
+        await handleTranscription(audioBlob);
+        setIsRecording(false);
+        delete (window as any).stopVoiceRecording;
+      };
+    } catch (error) {
+      console.error('Recording Error:', error);
+      alert('Failed to start recording. Please check microphone permissions.');
+      setIsRecording(false);
+    }
+  };
+
+  const stopVoiceRecord = () => {
+    if ((window as any).stopVoiceRecording) {
+      (window as any).stopVoiceRecording();
+    }
+  };
+
+  const handleTranscription = async (audioBlob: Blob) => {
+    setIsTranscribing(true);
+    try {
+      const result = await clientSpeechToText(audioBlob);
+      setInputText(result.text);
+    } catch (error) {
+      console.error('Transcription Error:', error);
+      alert('Failed to transcribe audio. Please check your OpenAI API key.');
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
 
   return (
     <AnimatePresence mode="wait">
@@ -137,12 +189,8 @@ export default function Home() {
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    const formData = new FormData(e.currentTarget);
-                    const input = e.currentTarget.querySelector(
-                      'input[name="message"]'
-                    ) as HTMLInputElement;
-                    const message = (formData.get("message") as string).trim();
-                    const finalMessage = message || input.placeholder;
+                    const message = inputText.trim();
+                    const finalMessage = message || "What's the price of NVIDIA stock?";
                     startChat(finalMessage);
                   }}
                   className="w-full max-w-[720px] flex flex-col items-center gap-3"
@@ -151,11 +199,40 @@ export default function Home() {
                     <input
                       name="message"
                       type="text"
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
                       placeholder="What's the price of NVIDIA stock?"
-                      className="w-full px-4 py-3 pr-[100px] border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF3B00] focus:border-transparent font-ppsupply"
+                      className="w-full px-4 py-3 pr-[180px] border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF3B00] focus:border-transparent font-ppsupply"
+                      disabled={isRecording || isTranscribing}
                     />
-                    <AnimatedButton type="submit">Run</AnimatedButton>
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+                      <button
+                        type="button"
+                        onClick={isRecording ? stopVoiceRecord : handleVoiceRecord}
+                        disabled={isTranscribing}
+                        className={`px-4 py-2 text-sm font-medium rounded transition-colors border ${
+                          isRecording
+                            ? 'bg-red-500 text-white hover:bg-red-600 border-red-600'
+                            : 'bg-blue-500 text-white hover:bg-blue-600 border-blue-600'
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      >
+                        {isRecording ? '🔴 Stop' : '🎤 Voice'}
+                      </button>
+                      <AnimatedButton type="submit" disabled={isRecording || isTranscribing}>
+                        {isTranscribing ? 'Processing...' : 'Run'}
+                      </AnimatedButton>
+                    </div>
                   </div>
+                  {isRecording && (
+                    <p className="text-sm text-red-600 font-ppsupply">
+                      🎤 Recording... Click "Stop" or speak for up to 10 seconds
+                    </p>
+                  )}
+                  {isTranscribing && (
+                    <p className="text-sm text-blue-600 font-ppsupply">
+                      🔄 Converting speech to text...
+                    </p>
+                  )}
                 </form>
                 <div className="grid grid-cols-2 gap-3 w-full">
                   <button

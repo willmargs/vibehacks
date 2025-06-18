@@ -7,6 +7,8 @@ import Image from "next/image";
 import { useAtom } from "jotai/react";
 import { contextIdAtom } from "../atoms";
 import posthog from "posthog-js";
+import { clientTextToSpeech, playAudio } from "../lib/speech-client";
+
 interface ChatFeedProps {
   initialMessage?: string;
   onClose: () => void;
@@ -30,6 +32,8 @@ interface AgentState {
 
 export default function ChatFeed({ initialMessage, onClose }: ChatFeedProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
   const { width } = useWindowSize();
   const isMobile = width ? width < 768 : false;
   const initializationRef = useRef(false);
@@ -53,6 +57,20 @@ export default function ChatFeed({ initialMessage, onClose }: ChatFeedProps) {
     steps: [],
   });
 
+  const speakText = useCallback(async (text: string) => {
+    if (!voiceEnabled || isSpeaking) return;
+    
+    setIsSpeaking(true);
+    try {
+      const audioBlob = await clientTextToSpeech(text, { voice: 'nova' });
+      await playAudio(audioBlob);
+    } catch (error) {
+      console.error('TTS Error:', error);
+    } finally {
+      setIsSpeaking(false);
+    }
+  }, [voiceEnabled, isSpeaking]);
+
   const scrollToBottom = useCallback(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =
@@ -66,6 +84,7 @@ export default function ChatFeed({ initialMessage, onClose }: ChatFeedProps) {
       uiState.steps[uiState.steps.length - 1].tool === "CLOSE"
     ) {
       setIsAgentFinished(true);
+      speakText("Task completed successfully.");
       fetch("/api/session", {
         method: "DELETE",
         headers: {
@@ -76,11 +95,21 @@ export default function ChatFeed({ initialMessage, onClose }: ChatFeedProps) {
         }),
       });
     }
-  }, [uiState.sessionId, uiState.steps]);
+  }, [uiState.sessionId, uiState.steps, speakText]);
 
   useEffect(() => {
     scrollToBottom();
   }, [uiState.steps, scrollToBottom]);
+
+  // Speak new steps as they are added
+  useEffect(() => {
+    if (uiState.steps.length > 0) {
+      const latestStep = uiState.steps[uiState.steps.length - 1];
+      if (latestStep.tool !== "CLOSE") {
+        speakText(`Step ${latestStep.stepNumber}: ${latestStep.text}`);
+      }
+    }
+  }, [uiState.steps.length, speakText]);
 
   useEffect(() => {
     console.log("useEffect called");
@@ -90,6 +119,7 @@ export default function ChatFeed({ initialMessage, onClose }: ChatFeedProps) {
 
       if (initialMessage && !agentStateRef.current.sessionId) {
         setIsLoading(true);
+        speakText(`Starting task: ${initialMessage}`);
         try {
           const sessionResponse = await fetch("/api/session", {
             method: "POST",
@@ -248,7 +278,7 @@ export default function ChatFeed({ initialMessage, onClose }: ChatFeedProps) {
     };
 
     initializeSession();
-  }, [initialMessage]);
+  }, [initialMessage, speakText]);
 
   // Spring configuration for smoother animations
   const springConfig = {
@@ -304,17 +334,33 @@ export default function ChatFeed({ initialMessage, onClose }: ChatFeedProps) {
           />
           <span className="font-ppneue text-gray-900">Open Operator</span>
         </div>
-        <motion.button
-          onClick={onClose}
-          className="px-4 py-2 hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors rounded-md font-ppsupply flex items-center gap-2"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          Close
-          {!isMobile && (
-            <kbd className="px-2 py-1 text-xs bg-gray-100 rounded-md">ESC</kbd>
-          )}
-        </motion.button>
+        <div className="flex items-center gap-2">
+          <motion.button
+            onClick={() => setVoiceEnabled(!voiceEnabled)}
+            className={`px-3 py-2 rounded-md font-ppsupply flex items-center gap-2 transition-colors ${
+              voiceEnabled 
+                ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            title={voiceEnabled ? 'Voice enabled - click to disable' : 'Voice disabled - click to enable'}
+          >
+            {voiceEnabled ? '🔊' : '🔇'} 
+            {isSpeaking && '📢'}
+          </motion.button>
+          <motion.button
+            onClick={onClose}
+            className="px-4 py-2 hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors rounded-md font-ppsupply flex items-center gap-2"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            Close
+            {!isMobile && (
+              <kbd className="px-2 py-1 text-xs bg-gray-100 rounded-md">ESC</kbd>
+            )}
+          </motion.button>
+        </div>
       </motion.nav>
       <main className="flex-1 flex flex-col items-center p-6">
         <motion.div
@@ -418,6 +464,17 @@ export default function ChatFeed({ initialMessage, onClose }: ChatFeedProps) {
                     className="p-4 bg-gray-50 rounded-lg font-ppsupply animate-pulse"
                   >
                     Processing...
+                  </motion.div>
+                )}
+                {isSpeaking && voiceEnabled && (
+                  <motion.div
+                    variants={messageVariants}
+                    className="p-4 bg-blue-50 rounded-lg font-ppsupply"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="animate-pulse">🔊</span>
+                      <span>Speaking...</span>
+                    </div>
                   </motion.div>
                 )}
               </div>

@@ -6,13 +6,15 @@ interface AnimatedButtonProps {
   onClick?: () => void;
   className?: string;
   children: React.ReactNode;
+  disabled?: boolean;
 }
 
 export default function AnimatedButton({
   type = "button",
   onClick,
   className = "",
-  children
+  children,
+  disabled = false
 }: AnimatedButtonProps) {
   const { width } = useWindowSize();
   const isMobile = width ? width < 768 : false;
@@ -21,9 +23,12 @@ export default function AnimatedButton({
     <motion.button
       type={type}
       onClick={onClick}
-      className={`absolute right-2 top-1 px-4 py-2 bg-[#FF3B00] hover:bg-[#FF2200] text-white font-medium transition-colors rounded ${className} group`}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.95 }}
+      disabled={disabled}
+      className={`absolute right-2 top-1 px-4 py-2 bg-[#FF3B00] hover:bg-[#FF2200] text-white font-medium transition-colors rounded ${className} group ${
+        disabled ? 'opacity-50 cursor-not-allowed hover:bg-[#FF3B00]' : ''
+      }`}
+      whileHover={disabled ? {} : { scale: 1.02 }}
+      whileTap={disabled ? {} : { scale: 0.95 }}
       transition={{
         type: "spring",
         stiffness: 400,
@@ -32,7 +37,7 @@ export default function AnimatedButton({
     >
       <span className="flex items-center gap-1 font-ppsupply">
         {children}
-        {!isMobile && (
+        {!isMobile && !disabled && (
           <>
             <span className="text-sm opacity-50 group-hover:opacity-100 transition-opacity">⌘+</span>
             <div className="w-3 h-3 rounded-full opacity-50 group-hover:opacity-100 transition-opacity">
